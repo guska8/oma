@@ -13,7 +13,9 @@ abstract class MY_Controller extends CI_Controller {
 	private $custom_menu = FALSE, $custom_header = FALSE, $custom_footer = FALSE;
 	// Common vars
 	public $class_name;
-
+	// Resources
+	private $resources;
+	
 	final private function initialize_vars() {
 		// Arrays for views
 		$this->menu_vars = array();
@@ -26,13 +28,13 @@ abstract class MY_Controller extends CI_Controller {
 		$this->menu_view = $this->config->item('menu_view');
 		$this->header_view = $this->config->item('header_view');
 		$this->footer_view = $this->config->item('footer_view');
+		// Resources for header
+		$this->header_vars["css_list"] = '';
+		$this->header_vars["js_list"] = '';
 		// Load default or custom views
 		$this->get_menu();
 		$this->get_header();
 		$this->get_footer();
-		// Resources
-		$this->_data["css_list"] = array();
-		$this->_data["js_list"] = array();
 	}
 
 	/** Load vars from header and common config files */
@@ -59,9 +61,6 @@ abstract class MY_Controller extends CI_Controller {
 	/** Loads a page with content
 	 * @param View to be loaded */
 	final protected function _load($view = '') {
-		if($view == ''){
-			throw new InvalidArgumentException('Invalid view name');
-		}
 		$this->initialize_vars();
 		$this->check_config();
 		ECHO $this->full_page['header'];
@@ -77,9 +76,9 @@ abstract class MY_Controller extends CI_Controller {
 		$header_path = APPPATH . 'views\\' . $this->config->item('header_view') . '.php';
 		$footer_path = APPPATH . 'views\\' . $this->config->item('footer_view') . '.php';
 		// Check config for my_controller
-		if(! file_exists($menu_path)) throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the menu file don\'t exist at {$menu_path}");
-		if(! file_exists($header_path)) throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the header file don\'t exist at {$menu_path}");
-		if(! file_exists($footer_path)) throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the footer file don\'t exist at {$menu_path}");
+		if(! file_exists($menu_path)) throw new Exception("Invalid configuration for my controller, the menu file don\'t exist at {$menu_path}");
+		if(! file_exists($header_path)) throw new Exception("Invalid configuration for my controller, the header file don\'t exist at {$menu_path}");
+		if(! file_exists($footer_path)) throw new Exception("Invalid configuration for my controller, the footer file don\'t exist at {$menu_path}");
 	}
 
 	/** Gets Default menu view or custom one if setted */
@@ -113,13 +112,13 @@ abstract class MY_Controller extends CI_Controller {
 	}
 
 	/** Checks if a resource type is accepted
-	 * @param $type string The type of resource (css, js, head) */
+	 * @param $type string The type of resource (css, js) */
 	private function is_resource_type($type = "") {
-		$accepted = array('css', 'js', 'meta');
+		$accepted = array('css', 'js');
 		if(in_array(strtolower($type), $accepted)){
 			return true;
 		}
-		return false;
+		throw new Exception('Invalid resource type');
 	}
 
 	/** Add a resource (css/js) to the template, searches resourses/class_name and then resources/common
@@ -129,10 +128,22 @@ abstract class MY_Controller extends CI_Controller {
 		if(! $this->is_resource_type($type)) return false;
 		if(is_array($file_name)){
 			foreach($file_name as $value){
-				$this->find_resource($type, $value);
+				$this->resources[] = array($type, $this->find_resource($type, $value));
 			}
 		} else{
-			$this->find_resource($type, $file_name);
+			$this->resources[] = array($type, $this->find_resource($type, $file_name));
+		}
+
+		foreach($this->resources as $key=>$value){
+			//Para cada tipo adiciona o recurso com a tag
+			switch($key){
+				case 'css':
+					$this->header_vars['css_list'] .= '<link rel="stylesheet" type="text/css" href="' . $value . '"/>';
+					break;
+				case 'js':
+					$this->header_vars['js_list'] .= '<script type="text/javascript" src="' . $value . '"/>';
+					break;
+			}
 		}
 	}
 
@@ -144,12 +155,12 @@ abstract class MY_Controller extends CI_Controller {
 		$path1 = base_url() . 'resources/' . $this->class_name . '/' . $type . '/' . $file_name;
 		$path2 = base_url() . 'resources/common/' . $type . '/' . $file_name;
 		//Se achou em resources
-		if(file_exists($path1)){
-			$this->_data[$type . '_list'][] = array('path'=>$path1);
-		} else if(file_exists($path2)){
-			//Se achou em common
-			$this->_data[$type . '_list'][] = array('path'=>$path2);
-		}
+		if(file_exists($path1))
+			return $path1;
+		//Se achou em common
+		else if(file_exists($path2))
+			return $path2;
+		else return false;
 	}
 
 	/** Defines a custom menu

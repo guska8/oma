@@ -5,7 +5,6 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>{site_title}</title>
 <link rel="stylesheet" href="{url_bs_css}" />
-<link rel="stylesheet" href="{url_sidebar_css}" />
 <link rel="stylesheet" href="{url_content_css}" />
 <link rel="stylesheet" href="{url_footer_css}" />
 {css_list}

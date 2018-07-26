@@ -5,7 +5,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class MY_Exception extends CI_Exceptions {
 	private $type, $message, $debug_stack;
 
-	public function __construct($type = 'DEBUG', $message = 'Generic Unspecified Exception') {
+	public function __construct($type = 'ERROR', $message = 'Generic Unspecified Exception') {
 		parent::__construct($message, 0, null);
 		$this->type = $type;
 		$this->message = $message;
@@ -14,6 +14,15 @@ class MY_Exception extends CI_Exceptions {
 		array_pop($this->debug_stack);
 	}
 
+	public function __construct($message = 'Generic Unspecified Exception') {
+		parent::__construct($message, 0, null);
+		$this->type = 'ERROR';
+		$this->message = $message;
+		$this->debug_stack = debug_backtrace();
+		//Remove My_Exception do backtrace
+		array_pop($this->debug_stack);
+	}
+	
 	/** Exception Logger Logs PHP generated error messages with backtrace
 	 * @param bool $arg If the message should show the arguments the functions received on the backtrace */
 	public function log_exception($arg = null) {
