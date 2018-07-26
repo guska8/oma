@@ -1,6 +1,9 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/* System Variables */
+defined('SYSTEM_NAME') OR define('SYSTEM_NAME', 'oma');
+
 /*
 |--------------------------------------------------------------------------
 | Display Debug backtrace

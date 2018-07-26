@@ -8,24 +8,18 @@
 <link rel="stylesheet" href="{url_sidebar_css}" />
 <link rel="stylesheet" href="{url_content_css}" />
 <link rel="stylesheet" href="{url_footer_css}" />
+{css_list}
+
 <script src="{url_jquery}"></script>
 <script src="{url_bs_popper}"></script>
 <script src="{url_bs_js}"></script>
 <!-- Font Awesome JS -->
-<script defer
-	src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js"
+<script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js"
 	integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ"
 	crossorigin="anonymous"></script>
 <script defer
 	src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js"
 	integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY"
 	crossorigin="anonymous"></script>
-<script type="text/javascript">
-        $(document).ready(function () {
-            $('#sidebarCollapse').on('click', function () {
-                $('#sidebar').toggleClass('active');
-                $('#content').toggleClass('active');
-            });
-        });
-    </script>
+{js_list}
 </head>

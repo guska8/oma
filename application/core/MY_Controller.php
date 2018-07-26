@@ -11,6 +11,8 @@ abstract class MY_Controller extends CI_Controller {
 	private $_data;
 	// Var to sinalize is custom, set from child class on abstract functions
 	private $custom_menu = FALSE, $custom_header = FALSE, $custom_footer = FALSE;
+	// Common vars
+	public $class_name;
 
 	final private function initialize_vars() {
 		// Arrays for views
@@ -28,6 +30,9 @@ abstract class MY_Controller extends CI_Controller {
 		$this->get_menu();
 		$this->get_header();
 		$this->get_footer();
+		// Resources
+		$this->_data["css_list"] = array();
+		$this->_data["js_list"] = array();
 	}
 
 	/** Load vars from header and common config files */
@@ -72,12 +77,9 @@ abstract class MY_Controller extends CI_Controller {
 		$header_path = APPPATH . 'views\\' . $this->config->item('header_view') . '.php';
 		$footer_path = APPPATH . 'views\\' . $this->config->item('footer_view') . '.php';
 		// Check config for my_controller
-		if(! file_exists($menu_path))
-			throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the menu file don\'t exist at {$menu_path}");
-		if(! file_exists($header_path))
-			throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the header file don\'t exist at {$menu_path}");
-		if(! file_exists($footer_path))
-			throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the footer file don\'t exist at {$menu_path}");
+		if(! file_exists($menu_path)) throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the menu file don\'t exist at {$menu_path}");
+		if(! file_exists($header_path)) throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the header file don\'t exist at {$menu_path}");
+		if(! file_exists($footer_path)) throw new InvalidArgumentException("Invalid configuration for my controller variables at my_controller, the footer file don\'t exist at {$menu_path}");
 	}
 
 	/** Gets Default menu view or custom one if setted */
@@ -110,24 +112,64 @@ abstract class MY_Controller extends CI_Controller {
 		}
 	}
 
+	/** Checks if a resource type is accepted
+	 * @param $type string The type of resource (css, js, head) */
+	private function is_resource_type($type = "") {
+		$accepted = array('css', 'js', 'meta');
+		if(in_array(strtolower($type), $accepted)){
+			return true;
+		}
+		return false;
+	}
+
+	/** Add a resource (css/js) to the template, searches resourses/class_name and then resources/common
+	 * @param $type string The type of resource (css, js)
+	 * @param $file_name string Resource to be added */
+	protected function add_resource($type, $file_name) {
+		if(! $this->is_resource_type($type)) return false;
+		if(is_array($file_name)){
+			foreach($file_name as $value){
+				$this->find_resource($type, $value);
+			}
+		} else{
+			$this->find_resource($type, $file_name);
+		}
+	}
+
+	/** Find the css or js file in the correct folder depending on the type
+	 * @param $type string The type of resource (css, js)
+	 * @param $file_name string Resource to be added */
+	private function find_resource($type, $file_name) {
+		//Path to
+		$path1 = base_url() . 'resources/' . $this->class_name . '/' . $type . '/' . $file_name;
+		$path2 = base_url() . 'resources/common/' . $type . '/' . $file_name;
+		//Se achou em resources
+		if(file_exists($path1)){
+			$this->_data[$type . '_list'][] = array('path'=>$path1);
+		} else if(file_exists($path2)){
+			//Se achou em common
+			$this->_data[$type . '_list'][] = array('path'=>$path2);
+		}
+	}
+
 	/** Defines a custom menu
 	 * @return String Need to return a parsed view to ECHO
 	 * @example return $this->parser->parse('view', $view_data); */
-	public function _custom_menu() {
+	function _custom_menu() {
 		return false;
 	}
 
 	/** Defines a custom <head> tag
 	 * @return String Need to return a parsed view to ECHO
 	 * @example return $this->parser->parse('header', $view_data); */
-	public function _custom_header() {
+	function _custom_header() {
 		return false;
 	}
 
 	/** Defines a custom footer
 	 * @return String Need to return a parsed view to ECHO
 	 * @example return $this->parser->parse('footer', $view_data); */
-	public function _custom_footer() {
+	function _custom_footer() {
 		return false;
 	}
 
